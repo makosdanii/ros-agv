@@ -6,16 +6,40 @@ from geometry_msgs.msg import Twist
 from amsagv_msgs.msg import LineStamped, TagStamped
 from math import pi, sin, cos, isnan
 from world import MTAG
+import math 
 
 
 
 tag = None
+direction  = 1 # 1=left -1=right
 
 # Handle line sensor
 def handleLine(msg):
-  print(msg.line.left, msg.line.right)
+
+  global direction
   
-  v, w = 0.0, 0.0
+  print(msg.line.left, msg.line.right, end='\r')
+  
+  left = msg.line.left
+  right = msg.line.right
+  
+  if(direction == 1):
+    w = -1*(0.4-left)*5
+    v = 0.1
+
+  if(direction == -1):
+    w = (0.4-(-1)*right)*5
+    v = 0.1
+
+  if math.isnan(left) or math.isnan(right):
+    v=0
+    w=0
+
+  #tags assignment
+  if(tag == 1):
+    direction = 1
+  elif(tag == 2):
+    direction = -1
 
   # Velocity commands message
   msgCmdVel = Twist()

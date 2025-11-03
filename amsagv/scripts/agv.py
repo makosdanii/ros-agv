@@ -13,6 +13,8 @@ with Agv() as robot:
   # Handle velocity commands
   def handleCmdVel(msg):
     global robot
+
+    print(msg)
     robot.setVel(msg.linear.x, msg.angular.z)
 
 
@@ -53,6 +55,9 @@ with Agv() as robot:
     sample_last_left, sample_last_right = encLeft, encRight
     sample_time = 0.02
 
+    rotation_bias=encHeading
+    print(f"{rotation_bias}")
+    
     while not rospy.is_shutdown():
       t = rospy.Time.now()
       
@@ -67,7 +72,6 @@ with Agv() as robot:
 
       #Rotation resolution is 8192 samples
       resolution =  2**13
-      rotation_bias=4248
       alfa = -2*math.pi*(encHeading-rotation_bias)/resolution
 
       sample_now_left = encLeft
@@ -82,6 +86,7 @@ with Agv() as robot:
 
 
       velocity_avg = (velocity_left+velocity_right)/2
+
       #print(f'Rotation in radians {alfa}, right vel {velocity_right}, left vel {velocity_left}, {velocity_avg=}', flush=True)
       x += velocity_avg * math.cos(alfa)*math.cos(phi)*sample_time
       y += velocity_avg * math.cos(alfa)*math.sin(phi)*sample_time
