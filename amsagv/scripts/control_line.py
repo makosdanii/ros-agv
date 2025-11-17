@@ -11,7 +11,7 @@ import math
 
 
 tag = None
-direction  = 1 # 1=left -1=right
+direction  = -1 # 1=left -1=right
 
 # Handle line sensor
 def handleLine(msg):

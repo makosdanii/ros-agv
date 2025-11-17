@@ -14,7 +14,7 @@ with Agv() as robot:
   def handleCmdVel(msg):
     global robot
 
-    print(msg)
+    #print(msg)
     robot.setVel(msg.linear.x, msg.angular.z)
 
 
@@ -47,7 +47,7 @@ with Agv() as robot:
     fd = 0.0 # Travelled distance of the front cart
     rate = rospy.Rate(50)
 
-    right_wheel_samples = 119314
+    right_wheel_samples = 112314
     left_wheel_samples = 114659.66666666667
     robot.readSensors()
     encLeft, encRight, encHeading = robot.getEncoders()
@@ -56,7 +56,7 @@ with Agv() as robot:
     sample_time = 0.02
 
     rotation_bias=encHeading
-    print(f"{rotation_bias}")
+    #print(f"{rotation_bias}")
     
     while not rospy.is_shutdown():
       t = rospy.Time.now()
@@ -84,7 +84,6 @@ with Agv() as robot:
       sample_last_left = sample_now_left
       sample_last_right = sample_now_right
 
-
       velocity_avg = (velocity_left+velocity_right)/2
 
       #print(f'Rotation in radians {alfa}, right vel {velocity_right}, left vel {velocity_left}, {velocity_avg=}', flush=True)
@@ -92,12 +91,12 @@ with Agv() as robot:
       y += velocity_avg * math.cos(alfa)*math.sin(phi)*sample_time
       phi += velocity_avg/0.12 * math.sin(alfa)*sample_time
 
-      print(f'x position {x}, y position {y}, rotation{phi}')
+      print(f'x position {x:10.10f}, y position {y:10.10f}, rotation{phi:10.10f}', end='\r')
 
       # Odometry message
       msgOdom.header.stamp = t
       msgOdom.pose.pose = ams.poseToPoseMsg(x, y, phi)
-      msgOdom.pose.pose.position.z = gamma
+      msgOdom.pose.pose.position.z = alfa
       # Publish odometry message
       pubOdom.publish(msgOdom)
 
