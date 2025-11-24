@@ -17,7 +17,7 @@ def handleOdometry(msg):
   gamma = msg.pose.pose.position.z
   #print(x, y, phi, gamma)
 
-  x_ref, y_ref = 1, 0.5 #desired point  
+  x_ref, y_ref = 1, 1 #desired point  
 
   # CTP controller 
   # INPUT - x_ref, y_ref, x, y, phi
@@ -25,9 +25,16 @@ def handleOdometry(msg):
 
   K_w=4
   K_v=1
+  K_ws=4
   phi_ref = math.atan2((y_ref-y) , (x_ref-x))
   w = K_w*ams.wrapToPi(phi_ref-phi)
-  v = K_v*math.sqrt( math.pow(x_ref-x, 2) + math.pow(y_ref-y, 2) )
+  distance_error = math.sqrt( math.pow(x_ref-x, 2) + math.pow(y_ref-y, 2) )
+  if distance_error < 0.02:
+    K_v = 0
+    K_ws = 0
+
+  v = K_v*distance_error
+
 
   # INPUT v, w
   # OUTPUT gamma_ref, vs
@@ -36,7 +43,6 @@ def handleOdometry(msg):
 
   # INPUT gamma, gamma_ref
   # OUTPUT ws
-  K_ws=4
   gamma_err = ams.wrapToPi(gamma_ref-gamma)
   ws = K_ws*gamma_err
 
@@ -53,6 +59,7 @@ def handleOdometry(msg):
   # Publish velocity commands
   pubCmdVel.publish(msgCmdVel)
 
+print()
 try:
   rospy.init_node('control_line')
   

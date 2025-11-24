@@ -1,4 +1,5 @@
 ssh pif@192.168.222.75
+rosrun amsagv agv.py
 
     #CALIBRATION CALCULATIONS
     
