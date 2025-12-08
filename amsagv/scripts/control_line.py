@@ -3,12 +3,14 @@
 import ams
 import rospy
 from geometry_msgs.msg import Twist
-from amsagv_msgs.msg import LineStamped, TagStamped
+from amsagv_msgs.msg import LineStamped, TagStamped, ActionsStamped
 from math import pi, sin, cos, isnan
 from world import MTAG
 import math 
 
 
+
+  
 
 tag = None
 direction  = -1 # 1=left -1=right
@@ -55,7 +57,9 @@ def handleTag(msg):
   tag = MTAG.get(msg.tag.id, None)
   print('New tag: {} -> {}'.format(msg.tag.id, tag))
 
-
+def handleActions(msg):
+  print(msg)
+  distance = msg.
 
 try:
   rospy.init_node('control_line')
@@ -66,6 +70,8 @@ try:
   subLine = rospy.Subscriber('line', LineStamped, handleLine)
   # Tag subscriber
   subTag = rospy.Subscriber('tag', TagStamped, handleTag)
+  # Actions subscriber
+  subActions = rospy.Subscriber('path_actions', ActionsStamped, handleActions)
 
   rospy.spin()
 except KeyboardInterrupt:

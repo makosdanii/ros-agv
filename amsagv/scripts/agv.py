@@ -85,7 +85,7 @@ with Agv() as robot:
       sample_last_right = sample_now_right
 
       velocity_avg = (velocity_left+velocity_right)/2
-
+      fd = velocity_avg * sample_time
       x += velocity_avg * math.cos(alfa)*math.cos(phi)*sample_time
       y += velocity_avg * math.cos(alfa)*math.sin(phi)*sample_time
       phi += velocity_avg/0.12 * math.sin(alfa)*sample_time
