@@ -10,26 +10,29 @@ import math
 
 
 
-  
-
+counter = 0
 tag = None
-direction  = -1 # 1=left -1=right
+tags = None
 
 # Handle line sensor
 def handleLine(msg):
 
   global direction
-  
+
   print(msg.line.left, msg.line.right, end='\r')
   
   left = msg.line.left
   right = msg.line.right
+
+  # comes from msg.actions.action.name
+  action = tags[counter].action
+  direction = action.name
   
-  if(direction == 1):
+  if(direction == "left"):
     w = -1*(0.4-left)*5
     v = 0.1
 
-  if(direction == -1):
+  if(direction == "right"):
     w = (0.4-(-1)*right)*5
     v = 0.1
 
@@ -37,11 +40,9 @@ def handleLine(msg):
     v=0
     w=0
 
-  #tags assignment
-  if(tag == 1):
-    direction = 1
-  elif(tag == 2):
-    direction = -1
+  if tag == tags[-1].action.id:
+    v=0
+    w=0
 
   # Velocity commands message
   msgCmdVel = Twist()
@@ -54,12 +55,17 @@ def handleLine(msg):
 
 def handleTag(msg):
   global tag
+  global counter
+  counter += 1
+  action = tags[counter].action
+  print(f"{action=}")
   tag = MTAG.get(msg.tag.id, None)
   print('New tag: {} -> {}'.format(msg.tag.id, tag))
 
 def handleActions(msg):
-  print(msg)
-  distance = msg.
+  global tags
+  tags = msg.actions
+
 
 try:
   rospy.init_node('control_line')

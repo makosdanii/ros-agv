@@ -120,7 +120,7 @@ class PathPlanning(object):
 
 if __name__ == '__main__':
   pp = PathPlanning()
-  path = pp.findPath(2, 12)
+  path = pp.findPath(1, 19)
   print(path)
   actions = pp.generateActions(path)
   print(actions)
