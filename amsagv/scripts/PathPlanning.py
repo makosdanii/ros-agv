@@ -1,12 +1,28 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+from math import sqrt
 from graph_gen import tagMap, tagDets
-import math
 
 class PathPlanning(object):
   def __init__(self):
     pass
 
+  @staticmethod
+  def heuristic1(pos1, pos2, width=None, height=None):
+    '''Heuristic 1
+    
+    Inputs:
+      pos1 - A tuple with x and y coordinate of point 1 (in meters).
+      pos2 - A tuple with x and y coordinate of point 2 (in meters).
+      width - Map width (in meters).
+      height - Map height (in meters).
+    
+    Outputs:
+      h - Heuristic or None if not appropriate
+    '''
+    h = sqrt((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2)
+    return h    
+  
   def findPath(self, startId, goalId):
     '''Find the shortest path
     
@@ -19,73 +35,61 @@ class PathPlanning(object):
              (including start and goal tag) or an empty list if path is not found.
     '''
     path = []
-    
-    #TODO Implement path planning algorithm here ...
-    distances = [float('inf')] * (max(tagMap.keys())+1)
-    heuristics = [float('inf')] * (max(tagMap.keys())+1)
-    previous = {}
-    visited = set()
-    
 
-    distances[startId] = 0 
-
-    queue = []
-    queue.append(startId)
-
-    index=0
-
-    while queue:
-      # Get current node
-      vertex = queue.pop()
-      visited.add(vertex)
-
-      if vertex == goalId:
+    open_list = [(startId, 0, None)]
+    closed_list = []
+    iteration = 0
+    while len(open_list):
+      iteration += 1
+      # Difference between Dijkstra's as oepened nodes sorted on heuristical distance
+      open_list = sorted(open_list, key=lambda arg: arg[2])
+      best = open_list.pop(0)
+      closed_list.append(best)
+      if best[0] == goalId:
         break
-      # Check neighbours
-      for i in range(2):
-        current = tagMap[vertex][i*2] # Get 0 and 2ns place of tagMap - nodes
-
-        # Check if node is existant
-        if current != 0:
-          #print(current)
-          if current in visited:
-            continue
+      neighbours = tagMap[best[0]]
+      for idx_n in range(0, len(neighbours)-1, 2):
+        n1 = neighbours[idx_n]
+        w1 = neighbours[idx_n+1]
+        if n1 != 0 and not (n1 in [i[0] for i in closed_list]):
+          # Dijkstra's way of computing next possible distance from opened node
+          tentative = best[1]+w1
+          # Compute heuristics as well
+          h = PathPlanning.heuristic1(tagDets[n1], tagDets[goalId])
+          for idx_o in range(len(open_list)):
+            if open_list[idx_o][0] == n1:
+              # check if the new route is shorter then the existing one to the neighbor
+              if tentative < open_list[idx_o][1]:
+                open_list[idx_o] = (n1, tentative, tentative + h, open_list[idx_o][3])
+              break
           else:
-            new_distance = distances[vertex] + tagMap[vertex][i*2+1] # Get 1st and 3rd places of tagMap - distances
-            new_euclidan = new_distance + math.sqrt((tagDets[vertex][0] - tagDets[goalId][0])**2 + (tagDets[vertex][1] - tagDets[goalId][1])**2 )
-            new_heuristic = new_distance+new_euclidan
+            # Node haven't been traversed yet, therefore add computed distance, and the heuristics too
+            open_list.append((n1, tentative, tentative + h, best[0]))
+    else:
+      print("No path found")
 
-          # Compare and update distance
-          if new_heuristic < heuristics[current]:
-            heuristics[current] = new_heuristic 
-            previous[current] = vertex
-            
-          # Compare and update heursistic
-          if new_distance < distances[current]:
-            distances[current] = new_distance 
-            previous[current] = vertex
-
-          if current in queue:
-            continue
-          else:
-            queue.append(current)
-      
-          queue.sort(key=lambda n: -heuristics[n])
-          index+=1
-      
-    print(index)
-
-    next = goalId
+    # print(closed_list)
+    def traceback(next_goal, path):
+      path.append(next_goal[0])
+      for elem in closed_list:
+        if elem[0] == next_goal[3]:
+          if elem[0] == startId:
+            return path
+          path = traceback(elem, path)
+          break
+      else:
+        print("Traceback error")
+      return path
     
-    # Calculate path 
-    while next != startId:
-      step = previous[next]
-      path.append(step)
-      next = step
-
-    path.reverse()
-    path.append(goalId)
-    return path 
+    if len(closed_list) > 0:
+      path = traceback(closed_list[-1], path)
+      path.append(startId)
+      path = list(reversed(path))
+    
+    return path
+  
+      
+    
 
   def generateActions(self, path):
     '''Generate a list of actions for given path
@@ -120,7 +124,7 @@ class PathPlanning(object):
 
 if __name__ == '__main__':
   pp = PathPlanning()
-  path = pp.findPath(1, 19)
+  path = pp.findPath(6, 1)
   print(path)
   actions = pp.generateActions(path)
   print(actions)

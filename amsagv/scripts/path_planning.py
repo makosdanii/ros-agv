@@ -10,6 +10,7 @@ from itertools import tee
 def handleStartGoal(msg):
   try:
     path = pp.findPath(msg.tags[0].tag.id, msg.tags[-1].tag.id)
+    print(path)
     patha, pathb = tee(path)
 
     msgPathTags = TagsStamped()
@@ -28,8 +29,9 @@ def handleStartGoal(msg):
       pathAction.action.distance = x[2]
       msgPathActions.actions.append(pathAction)
     pubPathActions.publish(msgPathActions)
-  except AttributeError:
+  except Exception as e:
     print('Error! Something went wrong :(')
+    print(e)
 
 
 

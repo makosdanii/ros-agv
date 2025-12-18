@@ -13,19 +13,34 @@ import math
 counter = 0
 tag = None
 tags = None
+arrived = False
+distance_covered = 0
 
 # Handle line sensor
 def handleLine(msg):
-
+  global arrived
+  global counter
   global direction
+  global distance_covered
 
-  print(msg.line.left, msg.line.right, end='\r')
-  
   left = msg.line.left
   right = msg.line.right
+  distance_covered += msg.line.distance
+  # print(f"{distance_covered=}", end='\r')
+  # print(msg.line.left, msg.line.right, end='\r')
 
-  # comes from msg.actions.action.name
+  if tags is None or counter >= len(tags):
+    print("Arrived", end='\r')
+    v=0
+    w = -1*(0.4-left)*5
+    return
+  
   action = tags[counter].action
+  if distance_covered >= action.distance - 0.02 and action.id >= 100:
+    print("Virtual tag hit")
+    handleTag(None, virtual=True)
+    return
+
   direction = action.name
   
   if(direction == "left"):
@@ -36,13 +51,15 @@ def handleLine(msg):
     w = (0.4-(-1)*right)*5
     v = 0.1
 
+  if counter == len(tags) - 1 and distance_covered >= action.distance - 0.01:
+    print("Slowing down")
+    v=0
+
   if math.isnan(left) or math.isnan(right):
+    print("Lost line", end='\r')
     v=0
     w=0
 
-  if tag == tags[-1].action.id:
-    v=0
-    w=0
 
   # Velocity commands message
   msgCmdVel = Twist()
@@ -53,17 +70,33 @@ def handleLine(msg):
 
 
 
-def handleTag(msg):
+def handleTag(msg, virtual = False):
   global tag
   global counter
+  global arrived
+  global distance_covered
+
+  distance_covered = 0
   counter += 1
+
+  if tags is not None and counter >= len(tags): 
+    arrived = True
+    return
+  
   action = tags[counter].action
   print(f"{action=}")
-  tag = MTAG.get(msg.tag.id, None)
-  print('New tag: {} -> {}'.format(msg.tag.id, tag))
+
+  if not virtual:
+    tag = MTAG.get(msg.tag.id, None)
+    print('New tag: {} -> {}'.format(msg.tag.id, tag))
 
 def handleActions(msg):
   global tags
+  global arrived
+  global counter
+  arrived = False
+  print('New path received')
+  counter = 0
   tags = msg.actions
 
 
