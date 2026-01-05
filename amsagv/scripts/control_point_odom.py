@@ -16,11 +16,11 @@ def handleOdometry(msg):
   x, y, phi = ams.msgToPose(msg.pose.pose)
   gamma = msg.pose.pose.position.z
 
-  x_ref, y_ref = -0.4, 0.4 #desired point  
+  x_ref, y_ref = 1, 0 #desired point  
 
   # control to ref.pose using intermediate direction
-  final_angle = 0
-  radius_at_approach = 0.3
+  final_angle = 180*math.pi/180
+  radius_at_approach = 0.3  
 
   # cosine initial error clamping
   threshold_angle_error = math.pi/2
