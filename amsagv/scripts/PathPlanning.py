@@ -41,13 +41,20 @@ class PathPlanning(object):
     iteration = 0
     while len(open_list):
       iteration += 1
-      # Difference between Dijkstra's as oepened nodes sorted on heuristical distance
+      # Difference between Dijkstra's as opened nodes sorted on heuristical distance
       open_list = sorted(open_list, key=lambda arg: arg[2])
+      # take node that's closest
       best = open_list.pop(0)
+
+      # this will not be traversed again so the algorithm is safe for loops on the map
       closed_list.append(best)
+
       if best[0] == goalId:
+        # goal reached
         break
+
       neighbours = tagMap[best[0]]
+      # traverse neighbors
       for idx_n in range(0, len(neighbours)-1, 2):
         n1 = neighbours[idx_n]
         w1 = neighbours[idx_n+1]
@@ -68,7 +75,6 @@ class PathPlanning(object):
     else:
       print("No path found")
 
-    # print(closed_list)
     def traceback(next_goal, path):
       path.append(next_goal[0])
       for elem in closed_list:
@@ -105,8 +111,6 @@ class PathPlanning(object):
     actions = []
 
     #TODO Convert path to actions here ...
-    #action = ('left', 20, 0.202)
-    #actions.append(action)
     for i in range (len(path)-1):
       first = path[i]
       second = path[i+1]

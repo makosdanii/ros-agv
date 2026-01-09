@@ -99,12 +99,6 @@ with Agv() as robot:
       # Publish odometry message
       pubOdom.publish(msgOdom)
 
-      #
-      # Line sensor
-      #
-
-      # Line-sensor valuesPermission denied
-
       lineValues = robot.getLineValues()
       # Left and right line edge
       edgeLeft, edgeRight = findLineEdges(lineValues)
