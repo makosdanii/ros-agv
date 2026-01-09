@@ -47,15 +47,15 @@ with Agv() as robot:
     fd = 0.0 # Travelled distance of the front cart
     rate = rospy.Rate(50)
 
+    # Defining how many samples each agv wheel has per 1 meter
     right_wheel_samples = 112314
-    left_wheel_samples = 114659.66666666667
+    left_wheel_samples = 114659
+
     robot.readSensors()
     encLeft, encRight, encHeading = robot.getEncoders()
 
     sample_last_left, sample_last_right = encLeft, encRight
     sample_time = 0.02
-    print()
-
     rotation_bias=4215
     
     while not rospy.is_shutdown():
@@ -64,12 +64,9 @@ with Agv() as robot:
       # Read sensors
       robot.readSensors()
 
-      # Encoders
+      # Updating current state of encoders
       encLeft, encRight, encHeading = robot.getEncoders()
-
-      #TODO Implement odometry here ...
-      # print(f'Encoders: left={encLeft}, right={encRight}, heading={encHeading}'.format(encLeft, encRight, encHeading))
-
+      
       #Rotation resolution is 8192 samples
       resolution =  2**13
       alfa = -2*math.pi*(encHeading-rotation_bias)/resolution
@@ -77,15 +74,19 @@ with Agv() as robot:
       sample_now_left = encLeft
       sample_now_right = encRight
 
-      #sampletime 20ms 
+      # Calculating velocity of each wheel
       velocity_left=(sample_last_left-sample_now_left)/((sample_time)*left_wheel_samples)
       velocity_right=-(sample_last_right-sample_now_right)/((sample_time)*right_wheel_samples)
 
+      # Updating the sample count for next calculation
       sample_last_left = sample_now_left
       sample_last_right = sample_now_right
 
+      # Calculating average velocity and current forward velocity,
       velocity_avg = (velocity_left+velocity_right)/2
       fd = velocity_avg * sample_time
+
+      # Updating robots position
       x += velocity_avg * math.cos(alfa)*math.cos(phi)*sample_time
       y += velocity_avg * math.cos(alfa)*math.sin(phi)*sample_time
       phi += velocity_avg/0.12 * math.sin(alfa)*sample_time

@@ -6,9 +6,6 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 import math
 
-
-
-
 # Handle odometry
 def handleOdometry(msg):
 
@@ -18,11 +15,11 @@ def handleOdometry(msg):
 
   x_ref, y_ref = 1, 0 #desired point  
 
-  # control to ref.pose using intermediate direction
+  # Control to reference pose using intermediate direction
   final_angle = 180*math.pi/180
   radius_at_approach = 0.3  
 
-  # cosine initial error clamping
+  # Clamping when orientation error is too large
   threshold_angle_error = math.pi/2
   def clamp_orientation_error(error):
     R = math.pow(math.cos(error), 3)
@@ -41,36 +38,37 @@ def handleOdometry(msg):
   
   distance_error = math.sqrt( math.pow(x_ref-x, 2) + math.pow(y_ref-y, 2) )
   
+  # Selecting the smallest turning angle
   alpha = ams.wrapToPi(phi_ref - final_angle)
   beta = math.atan2(radius_at_approach, distance_error) * (-1 if alpha < 0 else 1)
   if abs(alpha) > abs(beta):
     final_angle_error = ams.wrapToPi(phi_ref - phi + beta)
   else: 
     final_angle_error = ams.wrapToPi(phi_ref - phi + alpha)
-  
 
   w = K_w*final_angle_error
 
+  # Stopping condition
   if distance_error < 0.02:
     K_v = 0
     K_ws = 0
 
+  # Linear velocity scaling with distance and orientation
   R = clamp_orientation_error(final_angle_error)
   v = R*K_v*distance_error
 
-  # INPUT v, w
-  # OUTPUT gamma_ref, vs
+  # Steering angle
   gamma_ref = math.atan2(w*D, v)
 
-  # INPUT gamma, gamma_ref
-  # OUTPUT ws
+  # Steering angular velocity command
   gamma_err = ams.wrapToPi(gamma_ref-gamma)
   ws = K_ws*gamma_err
 
+  # Steering forward velocity command
   R = clamp_orientation_error(gamma_err)
   vs = math.sqrt(math.pow(v, 2) + math.pow(w, 2)*math.pow(D, 2))*R
 
-  # keeping velocity within limits
+  # Keeping velocity within limits
   if vs>0.2:
      vs=0.2
     
